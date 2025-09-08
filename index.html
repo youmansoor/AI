@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <title>Python Web Chatbot</title>
+    <meta charset="UTF-8">
+    <title>Static JS Chatbot</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,24 +20,20 @@
         #chatArea {
             max-height: 400px;
             overflow-y: auto;
-            padding-bottom: 10px;
             border: 1px solid #ddd;
-            margin-bottom: 15px;
             padding: 10px;
             border-radius: 6px;
             background: #fafafa;
+            margin-bottom: 15px;
         }
         .message {
-            margin: 8px 0;
-            white-space: pre-wrap;
+            margin: 10px 0;
         }
         .user {
             color: blue;
-            font-weight: bold;
         }
         .bot {
             color: green;
-            font-weight: bold;
         }
         input[type="text"] {
             width: 80%;
@@ -67,17 +63,12 @@
 </head>
 <body>
     <div class="chat-box">
-        <h2>🧠 Python Web Chatbot</h2>
+        <h2>🤖 Static JavaScript Chatbot</h2>
 
-        <div id="chatArea">
-            {% for entry in chat_history %}
-                <div class="message user"><strong>You [{{ entry.timestamp }}]:</strong> {{ entry.user }}</div>
-                <div class="message bot"><strong>Bot [{{ entry.timestamp }}]:</strong> {{ entry.bot }}</div>
-            {% endfor %}
-        </div>
+        <div id="chatArea"></div>
 
         <form id="chatForm">
-            <input type="text" id="messageInput" name="message" placeholder="Type your message..." autocomplete="off" required />
+            <input type="text" id="messageInput" placeholder="Type your message..." required />
             <input type="submit" value="Send" />
         </form>
 
@@ -90,45 +81,110 @@
     </div>
 
     <script>
-        const chatForm = document.getElementById("chatForm");
         const chatArea = document.getElementById("chatArea");
+        const chatForm = document.getElementById("chatForm");
         const messageInput = document.getElementById("messageInput");
 
-        chatForm.onsubmit = function(e) {
-            e.preventDefault();
-            const message = messageInput.value.trim();
-            if (message) {
-                sendMessage(message);
-                messageInput.value = "";
+        let userName = localStorage.getItem("chat_user_name") || null;
+
+        const jokes = [
+            "Why don’t scientists trust atoms? Because they make up everything!",
+            "Why did the math book look sad? Because it had too many problems.",
+            "Why did the scarecrow win an award? Because he was outstanding in his field!",
+            "I'm reading a book on anti-gravity. It's impossible to put down!"
+        ];
+
+        const facts = [
+            "Honey never spoils. Archaeologists found 3000-year-old honey in Egyptian tombs.",
+            "Octopuses have three hearts.",
+            "Bananas are berries, but strawberries aren't.",
+            "Your heart beats over 100,000 times a day."
+        ];
+
+        function getTimeStamp() {
+            return new Date().toLocaleTimeString();
+        }
+
+        function appendMessage(sender, text) {
+            const msg = document.createElement("div");
+            msg.className = "message " + (sender === "You" ? "user" : "bot");
+            msg.innerHTML = `<strong>${sender} [${getTimeStamp()}]:</strong> ${text}`;
+            chatArea.appendChild(msg);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function sendQuick(text) {
+            messageInput.value = text;
+            chatForm.dispatchEvent(new Event('submit'));
+        }
+
+        function botReply(userInput) {
+            const input = userInput.toLowerCase();
+
+            if (["hi", "hello", "hey"].includes(input)) {
+                return "Hey there! 👋 What can I help you with?";
             }
+
+            if (input.includes("how are you")) {
+                return "I'm just a bunch of code, but thanks for asking!";
+            }
+
+            if (input.includes("joke")) {
+                return jokes[Math.floor(Math.random() * jokes.length)];
+            }
+
+            if (input.includes("fact")) {
+                return facts[Math.floor(Math.random() * facts.length)];
+            }
+
+            if (input.includes("flip a coin")) {
+                return "It's " + (Math.random() < 0.5 ? "Heads" : "Tails") + "! 🪙";
+            }
+
+            if (input.includes("roll a dice") || input.includes("roll a die")) {
+                return "You rolled a " + (Math.floor(Math.random() * 6) + 1) + "! 🎲";
+            }
+
+            if (input.includes("date") || input.includes("today")) {
+                return `Today is ${new Date().toLocaleDateString()}.`;
+            }
+
+            if (input.includes("time")) {
+                return `The current time is ${new Date().toLocaleTimeString()}.`;
+            }
+
+            if (input.includes("my name is")) {
+                const name = userInput.split("my name is")[1].trim().split(" ")[0];
+                userName = name.charAt(0).toUpperCase() + name.slice(1);
+                localStorage.setItem("chat_user_name", userName);
+                return `Nice to meet you, ${userName}! I’ll try to remember that.`;
+            }
+
+            if (input.includes("what's my name") || input.includes("what is my name")) {
+                return userName ? `Your name is ${userName}!` : "I don't know your name yet. Say 'My name is ...'";
+            }
+
+            if (input.includes("help")) {
+                return `I can help you with:\n• Jokes 🤪\n• Fun facts 🧠\n• Date/time 🕒\n• Flip coins / roll dice 🎲\n• Name memory 👤`;
+            }
+
+            return "I'm still learning! 🤖 Try asking me for a joke, fact, or say 'Help' for more ideas.";
+        }
+
+        chatForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const userText = messageInput.value.trim();
+            if (!userText) return;
+            appendMessage("You", userText);
+            const reply = botReply(userText);
+            setTimeout(() => appendMessage("Bot", reply), 500);
+            messageInput.value = "";
+        });
+
+        // Welcome message on load
+        window.onload = () => {
+            appendMessage("Bot", "Welcome! 👋 Type 'help' to see what I can do.");
         };
-
-        function sendQuick(message) {
-            sendMessage(message);
-        }
-
-        function sendMessage(message) {
-            fetch("/chat", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.error){
-                    alert(data.error);
-                    return;
-                }
-                chatArea.innerHTML += `
-                    <div class="message user"><strong>You [${data.timestamp}]:</strong> ${data.user}</div>
-                    <div class="message bot"><strong>Bot [${data.timestamp}]:</strong> ${data.bot}</div>
-                `;
-                chatArea.scrollTop = chatArea.scrollHeight;
-            })
-            .catch(() => {
-                alert("Error contacting server.");
-            });
-        }
     </script>
 </body>
 </html>
