@@ -1,28 +1,41 @@
-from flask import Flask, render_template, request, session, jsonify
+# app.py
+from flask import Flask, render_template, request, jsonify, session
 from chatbot import chatbot_response
 from datetime import datetime
+import os
 
-app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+# Tell Flask to look for templates in current directory (root)
+app = Flask(__name__, template_folder='.')
+app.secret_key = os.urandom(24)  # Needed for sessions
 
 @app.route("/", methods=["GET"])
 def index():
-    if "chat_history" not in session:
-        session["chat_history"] = []
-    return render_template("index.html", chat_history=session["chat_history"])
+    chat_history = session.get("chat_history", [])
+    return render_template("index.html", chat_history=chat_history)
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    user_input = request.json["message"]
-    response, _ = chatbot_response(user_input, None)
-    timestamp = datetime.now().strftime("%H:%M:%S")
+    data = request.get_json()
+    user_message = data.get("message", "").strip()
+    if not user_message:
+        return jsonify({"error": "Empty message"}), 400
 
-    session["chat_history"].append({
-        "user": user_input,
-        "bot": response,
+    if "chat_history" not in session:
+        session["chat_history"] = []
+
+    bot_reply, session_user_name = chatbot_response(user_message, session.get("user_name"))
+    if session_user_name:
+        session["user_name"] = session_user_name
+
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    session["chat_history"].append({"user": user_message, "bot": bot_reply, "timestamp": timestamp})
+    session.modified = True
+
+    return jsonify({
+        "user": user_message,
+        "bot": bot_reply,
         "timestamp": timestamp
     })
-    return jsonify({"user": user_input, "bot": response, "timestamp": timestamp})
 
 if __name__ == "__main__":
     app.run(debug=True)

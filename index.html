@@ -1,0 +1,91 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ChatPy - Your Witty Assistant</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f0f0f0;
+            padding: 20px;
+        }
+        .chat-box {
+            max-width: 700px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+        .message { margin: 10px 0; }
+        .user { color: blue; }
+        .bot { color: green; }
+        input[type="text"] {
+            width: 70%;
+            padding: 10px;
+        }
+        input[type="submit"], .quick-button {
+            padding: 10px 15px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-box">
+        <h2>🤖 ChatPy</h2>
+
+        <div id="chatArea">
+            {% for entry in chat_history %}
+                <div class="message user"><strong>You [{{ entry.timestamp }}]:</strong> {{ entry.user }}</div>
+                <div class="message bot"><strong>ChatPy [{{ entry.timestamp }}]:</strong> {{ entry.bot }}</div>
+            {% endfor %}
+        </div>
+
+        <form id="chatForm">
+            <input type="text" id="messageInput" placeholder="Ask me something..." required>
+            <input type="submit" value="Send">
+        </form>
+
+        <div>
+            <button class="quick-button" onclick="sendQuick('Tell me a joke')">Joke</button>
+            <button class="quick-button" onclick="sendQuick('Tell me a fact')">Fact</button>
+            <button class="quick-button" onclick="sendQuick('Flip a coin')">Flip Coin</button>
+            <button class="quick-button" onclick="sendQuick('Roll a dice')">Roll Dice</button>
+            <button class="quick-button" onclick="sendQuick('Help')">Help</button>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById("chatForm");
+        const input = document.getElementById("messageInput");
+        const chatArea = document.getElementById("chatArea");
+
+        form.onsubmit = function(e) {
+            e.preventDefault();
+            const msg = input.value;
+            sendMessage(msg);
+            input.value = "";
+        };
+
+        function sendQuick(message) {
+            sendMessage(message);
+        }
+
+        function sendMessage(message) {
+            fetch("/chat", {
+                method: "POST",
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ message })
+            })
+            .then(res => res.json())
+            .then(data => {
+                chatArea.innerHTML += `
+                    <div class="message user"><strong>You [${data.timestamp}]:</strong> ${data.user}</div>
+                    <div class="message bot"><strong>ChatPy [${data.timestamp}]:</strong> ${data.bot}</div>
+                `;
+                chatArea.scrollTop = chatArea.scrollHeight;
+            });
+        }
+    </script>
+</body>
+</html>
