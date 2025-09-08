@@ -1,70 +1,106 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>ChatPy - Your Witty Assistant</title>
+    <meta charset="UTF-8" />
+    <title>Python Web Chatbot</title>
     <style>
         body {
-            font-family: Arial;
-            background: #f0f0f0;
-            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            padding: 40px;
         }
         .chat-box {
-            max-width: 700px;
+            max-width: 600px;
             margin: auto;
             background: #fff;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
         }
-        .message { margin: 10px 0; }
-        .user { color: blue; }
-        .bot { color: green; }
-        input[type="text"] {
-            width: 70%;
+        #chatArea {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-bottom: 10px;
+            border: 1px solid #ddd;
+            margin-bottom: 15px;
             padding: 10px;
+            border-radius: 6px;
+            background: #fafafa;
+        }
+        .message {
+            margin: 8px 0;
+            white-space: pre-wrap;
+        }
+        .user {
+            color: blue;
+            font-weight: bold;
+        }
+        .bot {
+            color: green;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
         }
         input[type="submit"], .quick-button {
             padding: 10px 15px;
+            font-size: 16px;
             margin-top: 10px;
+            margin-right: 5px;
+            cursor: pointer;
+            border-radius: 6px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+        }
+        .quick-button {
+            background-color: #007bff;
+        }
+        .quick-button:hover, input[type="submit"]:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
     <div class="chat-box">
-        <h2>🤖 ChatPy</h2>
+        <h2>🧠 Python Web Chatbot</h2>
 
         <div id="chatArea">
             {% for entry in chat_history %}
                 <div class="message user"><strong>You [{{ entry.timestamp }}]:</strong> {{ entry.user }}</div>
-                <div class="message bot"><strong>ChatPy [{{ entry.timestamp }}]:</strong> {{ entry.bot }}</div>
+                <div class="message bot"><strong>Bot [{{ entry.timestamp }}]:</strong> {{ entry.bot }}</div>
             {% endfor %}
         </div>
 
         <form id="chatForm">
-            <input type="text" id="messageInput" placeholder="Ask me something..." required>
-            <input type="submit" value="Send">
+            <input type="text" id="messageInput" name="message" placeholder="Type your message..." autocomplete="off" required />
+            <input type="submit" value="Send" />
         </form>
 
         <div>
-            <button class="quick-button" onclick="sendQuick('Tell me a joke')">Joke</button>
-            <button class="quick-button" onclick="sendQuick('Tell me a fact')">Fact</button>
-            <button class="quick-button" onclick="sendQuick('Flip a coin')">Flip Coin</button>
-            <button class="quick-button" onclick="sendQuick('Roll a dice')">Roll Dice</button>
-            <button class="quick-button" onclick="sendQuick('Help')">Help</button>
+            <button class="quick-button" onclick="sendQuick('Tell me a joke')">🃏 Joke</button>
+            <button class="quick-button" onclick="sendQuick('Flip a coin')">🪙 Flip Coin</button>
+            <button class="quick-button" onclick="sendQuick('Roll a dice')">🎲 Roll Dice</button>
+            <button class="quick-button" onclick="sendQuick('Help')">❓ Help</button>
         </div>
     </div>
 
     <script>
-        const form = document.getElementById("chatForm");
-        const input = document.getElementById("messageInput");
+        const chatForm = document.getElementById("chatForm");
         const chatArea = document.getElementById("chatArea");
+        const messageInput = document.getElementById("messageInput");
 
-        form.onsubmit = function(e) {
+        chatForm.onsubmit = function(e) {
             e.preventDefault();
-            const msg = input.value;
-            sendMessage(msg);
-            input.value = "";
+            const message = messageInput.value.trim();
+            if (message) {
+                sendMessage(message);
+                messageInput.value = "";
+            }
         };
 
         function sendQuick(message) {
@@ -74,16 +110,23 @@
         function sendMessage(message) {
             fetch("/chat", {
                 method: "POST",
-                headers: {'Content-Type': 'application/json'},
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message })
             })
-            .then(res => res.json())
+            .then(response => response.json())
             .then(data => {
+                if(data.error){
+                    alert(data.error);
+                    return;
+                }
                 chatArea.innerHTML += `
                     <div class="message user"><strong>You [${data.timestamp}]:</strong> ${data.user}</div>
-                    <div class="message bot"><strong>ChatPy [${data.timestamp}]:</strong> ${data.bot}</div>
+                    <div class="message bot"><strong>Bot [${data.timestamp}]:</strong> ${data.bot}</div>
                 `;
                 chatArea.scrollTop = chatArea.scrollHeight;
+            })
+            .catch(() => {
+                alert("Error contacting server.");
             });
         }
     </script>
