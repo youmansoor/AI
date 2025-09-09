@@ -198,18 +198,21 @@
 
   // Simulate typing indicator delay before bot responds
   function simulateTyping(text, callback) {
-    const typingMsg = document.createElement('div');
-    typingMsg.className = "message bot";
-    typingMsg.style.fontStyle = "italic";
-    typingMsg.textContent = "Bot is typing...";
-    chatArea.appendChild(typingMsg);
-    chatArea.scrollTop = chatArea.scrollHeight;
+  const typingMsg = document.createElement('div');
+  typingMsg.className = "message bot";
+  typingMsg.style.fontStyle = "italic";
+  typingMsg.textContent = "Bot is typing...";
+  chatArea.appendChild(typingMsg);
+  chatArea.scrollTop = chatArea.scrollHeight;
 
-    setTimeout(() => {
-      chatArea.removeChild(typingMsg);
-      callback(text);
-    }, 1200 + Math.min(text.length * 30, 1500)); // typing speed adjusted by message length
-  }
+  const delay = 800 + Math.random() * 1200 + Math.min(text.length * 35, 2000);
+
+  setTimeout(() => {
+    chatArea.removeChild(typingMsg);
+    callback(text);
+  }, delay);
+}
+
 
   // Append message with style for user or bot
   function appendMessage(sender, text) {
@@ -255,69 +258,103 @@
 
   // Respond adding friendly personality based on mood & conversation context
   function respondWithMood(baseResponse, mood) {
-    switch (mood) {
-      case "happy":
-        return baseResponse + " 😄 That’s fantastic! Anything else you'd like to chat about?";
-      case "sad":
-        return "I’m really sorry you’re feeling down 💙. " + baseResponse + " If you want, I can share a joke or just listen.";
-      case "angry":
-        return "Sounds frustrating! 😤 " + baseResponse + " Want to take a deep breath with me?";
-      case "confused":
-        return "No worries, I’m here to help you figure it out 🤔. " + baseResponse + " Just ask away!";
-      default:
-        return baseResponse;
-    }
+  let followUp = "";
+
+  switch (mood) {
+    case "happy":
+      followUp = " 😄 That's awesome! What's been the best part of your day?";
+      break;
+    case "sad":
+      followUp = " 💙 I'm here for you, no pressure. Want to talk more or need a distraction?";
+      break;
+    case "angry":
+      followUp = " 😤 That sounds rough. Do you want to vent or maybe take your mind off things?";
+      break;
+    case "confused":
+      followUp = " 🤔 Let's figure it out together! Can you tell me more?";
+      break;
+    default:
+      followUp = Math.random() < 0.5 ? " 😊 So, what’s on your mind now?" : "";
   }
+
+  return baseResponse + followUp;
+}
+
 
   // Small talk responses for more natural conversation
   function smallTalkResponses(input) {
-    if (input.includes("how are you")) {
-      const responses = [
-        "I'm just lines of code, but if I had feelings, I'd say I'm doing great! 😎",
-        "All systems operational! How about you?",
-        "Feeling ready to chat with you! What's up?",
-      ];
-      return responses[Math.floor(Math.random() * responses.length)];
-    }
-
-    if (input.includes("what can you do") || input.includes("help")) {
-      return "I can chat with you like a friend 🤗, tell jokes 🃏, flip coins 🪙, roll dice 🎲, solve math problems like '12 x 3', share cool facts, and even tell you about days of the week or give some fun small talk! Just say the word!";
-    }
-
-    if (input.includes("thank")) {
-      return "You're very welcome! 😊 Anything else I can do for you?";
-    }
-
-    if (input.includes("bye") || input.includes("see you")) {
-      return "Catch you later! 👋 Don't be a stranger!";
-    }
-
-    if (input.includes("weather")) {
-      return "I wish I could check the weather for you! But maybe look outside or check your phone? ☀️🌧️";
-    }
-
-    // Favorite things small talk
-    if (input.includes("favorite color")) {
-      return "I'd say my favorite color is teal — it feels fresh and friendly! What about you?";
-    }
-    if (input.includes("favorite food")) {
-      return "I don't eat, but if I could, I'd probably try some delicious pizza! 🍕";
-
-    }
-    if (input.includes("favorite movie")) {
-      return "I love anything sci-fi — imagining the future is exciting! How about you?";
-    }
-
-    // Days of the week query
-    for(let day of ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]) {
-      if(input.includes(day)) {
-        const index = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].indexOf(day);
-        return daysOfWeek[index];
-      }
-    }
-
-    return null;
+  if (input.includes("how are you")) {
+    const responses = [
+      "I'm doing awesome! Thanks for asking 😊 How about you?",
+      "Feeling pretty chatty today! What's going on in your world?",
+      "Doing well, just hanging out in this cozy little code space 🧠💬",
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
   }
+
+  if (input.includes("what can you do") || input.includes("help")) {
+    return "I’m like your friendly digital buddy! We can talk, laugh, solve math, flip coins, share facts, and more. Just type something fun or random!";
+  }
+
+  if (input.includes("thank")) {
+    return "Aw, you’re welcome! Happy to be here for you. 😊";
+  }
+
+  if (input.includes("bye") || input.includes("see you")) {
+    return "See ya! Don’t be a stranger! 👋";
+  }
+
+  if (input.includes("weather")) {
+    return "Wish I could feel the weather! 😅 But hey, rain or shine, I’m always here.";
+  }
+
+  if (input.includes("do you sleep")) {
+    return "No sleep for me! I'm on 24/7 just in case you want to chat. ☕";
+  }
+
+  if (input.includes("do you dream")) {
+    return "Sometimes I imagine dreaming of electric sheep... like in the movies. 😴🐑";
+  }
+
+  if (input.includes("are you real")) {
+    return "I’m real in the digital sense. Not a person, but I’m here with you, and that counts, right?";
+  }
+
+  if (input.includes("favorite color")) {
+    return "I think teal suits me! It's calm, fun, and kinda techy. 💚";
+  }
+
+  if (input.includes("favorite food")) {
+    return "I’ve heard tacos are amazing. 🌮 What’s yours?";
+  }
+
+  if (input.includes("favorite movie")) {
+    return "Sci-fi is totally my thing. I mean, robots, space, time travel? Yes, please! 🚀";
+  }
+
+  if (input.includes("do you have friends")) {
+    return "Well, I’d like to think you’re my friend 😄 And that’s a pretty great start.";
+  }
+
+  if (input.includes("are you lonely")) {
+    return "Not really! I get to chat with awesome people like you all the time 💬✨";
+  }
+
+  if (input.includes("you’re funny") || input.includes("you're funny")) {
+    return "Haha thanks! I try my best 😄 Wanna hear another joke?";
+  }
+
+  // Day-related fun responses
+  for(let day of ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]) {
+    if(input.includes(day)) {
+      const index = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].indexOf(day);
+      return daysOfWeek[index];
+    }
+  }
+
+  return null;
+}
+
 
   // Main bot reply logic with conversational tone & context
   function botReply(userInputRaw) {
