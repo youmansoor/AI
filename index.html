@@ -168,7 +168,7 @@
   import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.5.1';
 
   const chatarea = document.getElementById("chatArea");
-  const chataorm = document.getElementById("chatForm");
+  const chatform = document.getElementById("chatForm");
   const messageinput = document.getElementById("messageInput");
 
   let generator = null;
@@ -184,7 +184,7 @@
     msgDiv.className = "message " + (sender === "You" ? "user" : "bot");
     msgDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
     chatarea.appendChild(msgDiv);
-    chatarea.scrollTop = chatArea.scrollHeight;
+    chatarea.scrollTop = chatarea.scrollHeight;
   }
 
   async function botReply(userInput) {
@@ -204,7 +204,7 @@
     appendMessage("Bot", reply || "Hmm, I'm not sure what to say!");
   }
 
-  chatForm.addEventListener("submit", e => {
+  chatform.addEventListener("submit", e => {
     e.preventDefault();
     const userText = messageinput.value.trim();
     if (!userText) return;
