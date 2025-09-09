@@ -1,190 +1,419 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Static JS Chatbot</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f2f2f2;
-            padding: 40px;
-        }
-        .chat-box {
-            max-width: 600px;
-            margin: auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
-        }
-        #chatArea {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 6px;
-            background: #fafafa;
-            margin-bottom: 15px;
-        }
-        .message {
-            margin: 10px 0;
-        }
-        .user {
-            color: blue;
-        }
-        .bot {
-            color: green;
-        }
-        input[type="text"] {
-            width: 80%;
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-        }
-        input[type="submit"], .quick-button {
-            padding: 10px 15px;
-            font-size: 16px;
-            margin-top: 10px;
-            margin-right: 5px;
-            cursor: pointer;
-            border-radius: 6px;
-            border: none;
-            background-color: #28a745;
-            color: white;
-        }
-        .quick-button {
-            background-color: #007bff;
-        }
-        .quick-button:hover, input[type="submit"]:hover {
-            background-color: #0056b3;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>AI-Style Friendly Chatbot</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #121212;
+      color: #e0e0e0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    .chat-box {
+      max-width: 700px;
+      width: 100%;
+      background: #1e1e1e;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 150, 136, 0.7);
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      height: 90vh;
+    }
+    h2 {
+      margin-bottom: 15px;
+      color: #00bfa5;
+      font-weight: 700;
+      font-size: 24px;
+    }
+    #chatArea {
+      flex-grow: 1;
+      overflow-y: auto;
+      border: 1px solid #00bfa5;
+      background: #121212;
+      padding: 20px;
+      border-radius: 12px;
+      white-space: pre-wrap;
+      margin-bottom: 20px;
+      font-size: 16px;
+      line-height: 1.5;
+      scrollbar-width: thin;
+      scrollbar-color: #00bfa5 #1e1e1e;
+    }
+    #chatArea::-webkit-scrollbar {
+      width: 8px;
+    }
+    #chatArea::-webkit-scrollbar-track {
+      background: #1e1e1e;
+    }
+    #chatArea::-webkit-scrollbar-thumb {
+      background-color: #00bfa5;
+      border-radius: 10px;
+    }
+    .message {
+      margin: 10px 0;
+      max-width: 75%;
+      padding: 12px 18px;
+      border-radius: 18px;
+      position: relative;
+      word-wrap: break-word;
+    }
+    .user {
+      background: #004d40;
+      color: #a5d6a7;
+      align-self: flex-end;
+      text-align: right;
+      border-bottom-right-radius: 4px;
+    }
+    .bot {
+      background: #00695c;
+      color: #b2dfdb;
+      align-self: flex-start;
+      text-align: left;
+      border-bottom-left-radius: 4px;
+    }
+    form {
+      display: flex;
+      gap: 15px;
+    }
+    input[type="text"] {
+      flex-grow: 1;
+      padding: 15px 20px;
+      font-size: 16px;
+      border-radius: 30px;
+      border: 2px solid #00bfa5;
+      background: #121212;
+      color: #e0e0e0;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    input[type="text"]:focus {
+      border-color: #00e5ff;
+    }
+    input[type="submit"] {
+      background-color: #00bfa5;
+      border: none;
+      padding: 15px 30px;
+      font-size: 16px;
+      color: #004d40;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: background-color 0.3s;
+    }
+    input[type="submit"]:hover {
+      background-color: #00e5ff;
+      color: #00332b;
+    }
+    .quick-buttons {
+      margin-top: 15px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .quick-button {
+      background-color: #004d40;
+      color: #a5d6a7;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+    .quick-button:hover {
+      background-color: #00bfa5;
+      color: #004d40;
+    }
+    @media (max-width: 600px) {
+      .chat-box {
+        height: 80vh;
+        padding: 20px;
+      }
+      input[type="text"], input[type="submit"] {
+        font-size: 14px;
+        padding: 12px 15px;
+      }
+      .quick-button {
+        padding: 10px 14px;
+        font-size: 12px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="chat-box">
-        <h2>🤖 Static JavaScript Chatbot</h2>
-
-        <div id="chatArea"></div>
-
-        <form id="chatForm">
-            <input type="text" id="messageInput" placeholder="Type your message..." required />
-            <input type="submit" value="Send" />
-        </form>
-
-        <div>
-            <button class="quick-button" onclick="sendQuick('Tell me a joke')">🃏 Joke</button>
-            <button class="quick-button" onclick="sendQuick('Flip a coin')">🪙 Flip Coin</button>
-            <button class="quick-button" onclick="sendQuick('Roll a dice')">🎲 Roll Dice</button>
-            <button class="quick-button" onclick="sendQuick('Help')">❓ Help</button>
-        </div>
+  <div class="chat-box">
+    <h2>🤖 AI-Style Chatbot Buddy</h2>
+    <div id="chatArea" role="log" aria-live="polite"></div>
+    <form id="chatForm" autocomplete="off" aria-label="Chat form">
+      <input type="text" id="messageInput" placeholder="Chat with me like a friend..." aria-required="true" />
+      <input type="submit" value="Send" aria-label="Send message" />
+    </form>
+    <div class="quick-buttons" role="group" aria-label="Quick action buttons">
+      <button class="quick-button" onclick="sendQuick('Tell me a joke')">🃏 Joke</button>
+      <button class="quick-button" onclick="sendQuick('Flip a coin')">🪙 Coin</button>
+      <button class="quick-button" onclick="sendQuick('Roll a dice')">🎲 Dice</button>
+      <button class="quick-button" onclick="sendQuick('Help')">❓ Help</button>
     </div>
+  </div>
 
-    <script>
-        const chatArea = document.getElementById("chatArea");
-        const chatForm = document.getElementById("chatForm");
-        const messageInput = document.getElementById("messageInput");
+<script>
+  const chatArea = document.getElementById("chatArea");
+  const chatForm = document.getElementById("chatForm");
+  const messageInput = document.getElementById("messageInput");
 
-        let userName = localStorage.getItem("chat_user_name") || null;
+  let userName = localStorage.getItem("chat_user_name") || null;
+  let conversationHistory = [];
 
-        const jokes = [
-            "Why don’t scientists trust atoms? Because they make up everything!",
-            "Why did the math book look sad? Because it had too many problems.",
-            "Why did the scarecrow win an award? Because he was outstanding in his field!",
-            "I'm reading a book on anti-gravity. It's impossible to put down!"
-        ];
+  const jokes = [
+    "Why don’t scientists trust atoms? Because they make up everything! 😂",
+    "Why did the math book look sad? Because it had too many problems. 😅",
+    "Why did the scarecrow win an award? Because he was outstanding in his field! 🌾",
+    "I'm reading a book on anti-gravity. It's impossible to put down! 🚀"
+  ];
 
-        const facts = [
-            "Honey never spoils. Archaeologists found 3000-year-old honey in Egyptian tombs.",
-            "Octopuses have three hearts.",
-            "Bananas are berries, but strawberries aren't.",
-            "Your heart beats over 100,000 times a day."
-        ];
+  const facts = [
+    "Honey never spoils. Archaeologists found 3000-year-old honey in Egyptian tombs. 🍯",
+    "Octopuses have three hearts. ❤️❤️❤️",
+    "Bananas are berries, but strawberries aren't. 🍌🍓",
+    "Your heart beats over 100,000 times a day. 💓"
+  ];
 
-        function getTimeStamp() {
-            return new Date().toLocaleTimeString();
-        }
+  // Days of week info
+  const daysOfWeek = [
+    "Sunday - time to relax and recharge! ☀️",
+    "Monday - fresh start, let’s make it awesome! 💪",
+    "Tuesday - keep going, you're doing great! 🚀",
+    "Wednesday - halfway through, hang in there! 🌟",
+    "Thursday - almost Friday, stay strong! 🎯",
+    "Friday - weekend vibes incoming! 🎉",
+    "Saturday - enjoy yourself and have fun! 😎"
+  ];
 
-        function appendMessage(sender, text) {
-            const msg = document.createElement("div");
-            msg.className = "message " + (sender === "You" ? "user" : "bot");
-            msg.innerHTML = `<strong>${sender} [${getTimeStamp()}]:</strong> ${text}`;
-            chatArea.appendChild(msg);
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }
+  // Simulate typing indicator delay before bot responds
+  function simulateTyping(text, callback) {
+    const typingMsg = document.createElement('div');
+    typingMsg.className = "message bot";
+    typingMsg.style.fontStyle = "italic";
+    typingMsg.textContent = "Bot is typing...";
+    chatArea.appendChild(typingMsg);
+    chatArea.scrollTop = chatArea.scrollHeight;
 
-        function sendQuick(text) {
-            messageInput.value = text;
-            chatForm.dispatchEvent(new Event('submit'));
-        }
+    setTimeout(() => {
+      chatArea.removeChild(typingMsg);
+      callback(text);
+    }, 1200 + Math.min(text.length * 30, 1500)); // typing speed adjusted by message length
+  }
 
-        function botReply(userInput) {
-            const input = userInput.toLowerCase();
+  // Append message with style for user or bot
+  function appendMessage(sender, text) {
+    const msg = document.createElement("div");
+    msg.className = "message " + (sender === "You" ? "user" : "bot");
+    msg.innerHTML = `<strong>${sender}:</strong> ${text}`;
+    chatArea.appendChild(msg);
+    chatArea.scrollTop = chatArea.scrollHeight;
 
-            if (["hi", "hello", "hey"].includes(input)) {
-                return "Hey there! 👋 What can I help you with?";
-            }
+    // Save conversation to history
+    conversationHistory.push({ sender, text });
+    if(conversationHistory.length > 30) conversationHistory.shift();
+  }
 
-            if (input.includes("how are you")) {
-                return "I'm just a bunch of code, but thanks for asking!";
-            }
+  // Quick button handler
+  function sendQuick(text) {
+    messageInput.value = text;
+    chatForm.dispatchEvent(new Event('submit'));
+  }
 
-            if (input.includes("joke")) {
-                return jokes[Math.floor(Math.random() * jokes.length)];
-            }
+  // Evaluate math expression safely (allowing x or X as multiply)
+  function evaluateMath(expression) {
+    try {
+      expression = expression.replace(/[xX]/g, '*');
+      if (!/^[0-9+\-*/^().\s]*$/.test(expression)) return null;
+      expression = expression.replace(/\^/g, '**');
+      const result = Function(`"use strict"; return (${expression})`)();
+      return isFinite(result) ? result : null;
+    } catch {
+      return null;
+    }
+  }
 
-            if (input.includes("fact")) {
-                return facts[Math.floor(Math.random() * facts.length)];
-            }
+  // Detect mood with extended keywords
+  function detectMood(input) {
+    input = input.toLowerCase();
+    if (/sad|tired|lonely|depressed|upset|down|bad/.test(input)) return "sad";
+    if (/happy|excited|great|awesome|fantastic|good|joy|amazing|wonderful/.test(input)) return "happy";
+    if (/angry|mad|annoyed|furious|frustrated|rage/.test(input)) return "angry";
+    if (/confused|lost|don't get|unsure|unclear|puzzled|dunno/.test(input)) return "confused";
+    return "neutral";
+  }
 
-            if (input.includes("flip a coin")) {
-                return "It's " + (Math.random() < 0.5 ? "Heads" : "Tails") + "! 🪙";
-            }
+  // Respond adding friendly personality based on mood & conversation context
+  function respondWithMood(baseResponse, mood) {
+    switch (mood) {
+      case "happy":
+        return baseResponse + " 😄 That’s fantastic! Anything else you'd like to chat about?";
+      case "sad":
+        return "I’m really sorry you’re feeling down 💙. " + baseResponse + " If you want, I can share a joke or just listen.";
+      case "angry":
+        return "Sounds frustrating! 😤 " + baseResponse + " Want to take a deep breath with me?";
+      case "confused":
+        return "No worries, I’m here to help you figure it out 🤔. " + baseResponse + " Just ask away!";
+      default:
+        return baseResponse;
+    }
+  }
 
-            if (input.includes("roll a dice") || input.includes("roll a die")) {
-                return "You rolled a " + (Math.floor(Math.random() * 6) + 1) + "! 🎲";
-            }
+  // Small talk responses for more natural conversation
+  function smallTalkResponses(input) {
+    if (input.includes("how are you")) {
+      const responses = [
+        "I'm just lines of code, but if I had feelings, I'd say I'm doing great! 😎",
+        "All systems operational! How about you?",
+        "Feeling ready to chat with you! What's up?",
+      ];
+      return responses[Math.floor(Math.random() * responses.length)];
+    }
 
-            if (input.includes("date") || input.includes("today")) {
-                return `Today is ${new Date().toLocaleDateString()}.`;
-            }
+    if (input.includes("what can you do") || input.includes("help")) {
+      return "I can chat with you like a friend 🤗, tell jokes 🃏, flip coins 🪙, roll dice 🎲, solve math problems like '12 x 3', share cool facts, and even tell you about days of the week or give some fun small talk! Just say the word!";
+    }
 
-            if (input.includes("time")) {
-                return `The current time is ${new Date().toLocaleTimeString()}.`;
-            }
+    if (input.includes("thank")) {
+      return "You're very welcome! 😊 Anything else I can do for you?";
+    }
 
-            if (input.includes("my name is")) {
-                const name = userInput.split("my name is")[1].trim().split(" ")[0];
-                userName = name.charAt(0).toUpperCase() + name.slice(1);
-                localStorage.setItem("chat_user_name", userName);
-                return `Nice to meet you, ${userName}! I’ll try to remember that.`;
-            }
+    if (input.includes("bye") || input.includes("see you")) {
+      return "Catch you later! 👋 Don't be a stranger!";
+    }
 
-            if (input.includes("what's my name") || input.includes("what is my name")) {
-                return userName ? `Your name is ${userName}!` : "I don't know your name yet. Say 'My name is ...'";
-            }
+    if (input.includes("weather")) {
+      return "I wish I could check the weather for you! But maybe look outside or check your phone? ☀️🌧️";
+    }
 
-            if (input.includes("help")) {
-                return `I can help you with:\n• Jokes 🤪\n• Fun facts 🧠\n• Date/time 🕒\n• Flip coins / roll dice 🎲\n• Name memory 👤`;
-            }
+    // Favorite things small talk
+    if (input.includes("favorite color")) {
+      return "I'd say my favorite color is teal — it feels fresh and friendly! What about you?";
+    }
+    if (input.includes("favorite food")) {
+      return "I don't eat, but if I could, I'd probably try some delicious pizza! 🍕";
 
-            return "I'm still learning! 🤖 Try asking me for a joke, fact, or say 'Help' for more ideas.";
-        }
+    }
+    if (input.includes("favorite movie")) {
+      return "I love anything sci-fi — imagining the future is exciting! How about you?";
+    }
 
-        chatForm.addEventListener("submit", (e) => {
-            e.preventDefault();
-            const userText = messageInput.value.trim();
-            if (!userText) return;
-            appendMessage("You", userText);
-            const reply = botReply(userText);
-            setTimeout(() => appendMessage("Bot", reply), 500);
-            messageInput.value = "";
-        });
+    // Days of the week query
+    for(let day of ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]) {
+      if(input.includes(day)) {
+        const index = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].indexOf(day);
+        return daysOfWeek[index];
+      }
+    }
 
-        // Welcome message on load
-        window.onload = () => {
-            appendMessage("Bot", "Welcome! 👋 Type 'help' to see what I can do.");
-        };
-    </script>
+    return null;
+  }
+
+  // Main bot reply logic with conversational tone & context
+  function botReply(userInputRaw) {
+    const userInput = userInputRaw.toLowerCase().trim();
+    const mood = detectMood(userInputRaw);
+
+    // Check small talk first for friendly conversation
+    const smallTalk = smallTalkResponses(userInput);
+    if (smallTalk) {
+      return respondWithMood(smallTalk, mood);
+    }
+
+    // Math problem solve (recognize x or X as multiply)
+    const mathResult = evaluateMath(userInputRaw);
+    if (mathResult !== null) {
+      return respondWithMood(`Nice! I calculated that:\n${userInputRaw} = ${mathResult}`, mood);
+    }
+
+    // Greeting with personalization
+    if (["hi", "hello", "hey", "yo", "sup", "hiya"].includes(userInput)) {
+      return respondWithMood(`Hey${userName ? ", " + userName : ""}! 👋 What’s on your mind today?`, mood);
+    }
+
+    // Remember user name
+    if (userInput.includes("my name is")) {
+      const name = userInputRaw.split("my name is")[1].trim().split(" ")[0];
+      userName = name.charAt(0).toUpperCase() + name.slice(1);
+      localStorage.setItem("chat_user_name", userName);
+      return respondWithMood(`Nice to meet you, ${userName}! I’ll remember that 😊`, mood);
+    }
+
+    if (userInput.includes("what's my name") || userInput.includes("what is my name")) {
+      return respondWithMood(userName ? `Your name is ${userName}, my awesome friend! 😎` : "I don’t know your name yet. You can tell me by saying 'My name is ...'", mood);
+    }
+
+    // Tell jokes, facts, coin flips, dice rolls, date/time
+    if (userInput.includes("joke")) {
+      const joke = jokes[Math.floor(Math.random() * jokes.length)];
+      return respondWithMood(joke + " 😄 Want to hear another one?", mood);
+    }
+
+    if (userInput.includes("fact")) {
+      const fact = facts[Math.floor(Math.random() * facts.length)];
+      return respondWithMood("Here’s a cool fact for you:\n" + fact, mood);
+    }
+
+    if (userInput.includes("flip a coin")) {
+            return respondWithMood("Flipping a coin... 🪙 It's " + (Math.random() < 0.5 ? "Heads!" : "Tails!"), mood);
+    }
+
+    if (userInput.includes("roll a dice") || userInput.includes("roll a die")) {
+      return respondWithMood("Rolling a dice... 🎲 You got a " + (Math.floor(Math.random() * 6) + 1), mood);
+    }
+
+    if (userInput.includes("date") || userInput.includes("today")) {
+      return respondWithMood(`Today is ${new Date().toLocaleDateString()} 📅`, mood);
+    }
+
+    if (userInput.includes("time")) {
+      return respondWithMood(`It's ${new Date().toLocaleTimeString()} ⏰`, mood);
+    }
+
+    // Respond to “what day is it”
+    if (userInput.includes("what day")) {
+      const today = new Date().getDay(); // 0 = Sunday, 6 = Saturday
+      return respondWithMood(`Today is ${daysOfWeek[today]}`, mood);
+    }
+
+    // Supportive response for sad mood
+    if (mood === "sad") {
+      return respondWithMood("I'm here for you 💙. Want to talk about it or maybe hear a joke to cheer you up?", mood);
+    }
+
+    // Default fallback
+    return respondWithMood("Hmm, I’m still learning to chat better 🤖, but I’m here to listen! Want to tell me more?", mood);
+  }
+
+  chatForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const userText = messageInput.value.trim();
+    if (!userText) return;
+    appendMessage("You", userText);
+    messageInput.value = "";
+
+    simulateTyping(botReply(userText), (reply) => {
+      appendMessage("Bot", reply);
+    });
+  });
+
+  // Initial welcome message
+  window.onload = () => {
+    appendMessage("Bot", `Hey there! 👋 I'm your AI-style friendly chatbot buddy. Type 'help' anytime to see what I can do.`);
+    if (userName) {
+      appendMessage("Bot", `Nice to see you again, ${userName}! 😊 How have you been?`);
+    }
+  };
+</script>
 </body>
 </html>
