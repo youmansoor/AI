@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Super Talkative Chatbot</title>
+<style>
+   body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #121212;
+      color: #e0e0e0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    .chat-box {
+      max-width: 700px;
+      width: 100%;
+      background: #1e1e1e;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 150, 136, 0.7);
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      height: 90vh;
+    }
+    h2 {
+      margin-bottom: 15px;
+      color: #00bfa5;
+      font-weight: 700;
+      font-size: 24px;
+    }
+    #chatArea {
+      flex-grow: 1;
+      overflow-y: auto;
+      border: 1px solid #00bfa5;
+      background: #121212;
+      padding: 20px;
+      border-radius: 12px;
+      white-space: pre-wrap;
+      margin-bottom: 20px;
+      font-size: 16px;
+      line-height: 1.5;
+      scrollbar-width: thin;
+      scrollbar-color: #00bfa5 #1e1e1e;
+    }
+    #chatArea::-webkit-scrollbar {
+      width: 8px;
+    }
+    #chatArea::-webkit-scrollbar-track {
+      background: #1e1e1e;
+    }
+    #chatArea::-webkit-scrollbar-thumb {
+      background-color: #00bfa5;
+      border-radius: 10px;
+    }
+    .message {
+      margin: 10px 0;
+      max-width: 75%;
+      padding: 12px 18px;
+      border-radius: 18px;
+      position: relative;
+      word-wrap: break-word;
+    }
+    .user {
+      background: #004d40;
+      color: #a5d6a7;
+      align-self: flex-end;
+      text-align: right;
+      border-bottom-right-radius: 4px;
+    }
+    .bot {
+      background: #00695c;
+      color: #b2dfdb;
+      align-self: flex-start;
+      text-align: left;
+      border-bottom-left-radius: 4px;
+    }
+    form {
+      display: flex;
+      gap: 15px;
+    }
+    input[type="text"] {
+      flex-grow: 1;
+      padding: 15px 20px;
+      font-size: 16px;
+      border-radius: 30px;
+      border: 2px solid #00bfa5;
+      background: #121212;
+      color: #e0e0e0;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    input[type="text"]:focus {
+      border-color: #00e5ff;
+    }
+    input[type="submit"] {
+      background-color: #00bfa5;
+      border: none;
+      padding: 15px 30px;
+      font-size: 16px;
+      color: #004d40;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: background-color 0.3s;
+    }
+    input[type="submit"]:hover {
+      background-color: #00e5ff;
+      color: #00332b;
+    }
+    .quick-buttons {
+      margin-top: 15px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .quick-button {
+      background-color: #004d40;
+      color: #a5d6a7;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+    .quick-button:hover {
+      background-color: #00bfa5;
+      color: #004d40;
+    }
+    @media (max-width: 600px) {
+      .chat-box {
+        height: 80vh;
+        padding: 20px;
+      }
+      input[type="text"], input[type="submit"] {
+        font-size: 14px;
+        padding: 12px 15px;
+      }
+      .quick-button {
+        padding: 10px 14px;
+        font-size: 12px;
+      }
+    }
+</style>
+</head>
+<body>
+
+<div class="chat-box" role="main" aria-label="Chat with Super Talkative AI">
+  <h2>🤖 Super Talkative AI Buddy</h2>
+  <div id="chatArea" role="log" aria-live="polite"></div>
+  <form id="chatForm" autocomplete="off" aria-label="Send your message">
+    <input type="text" id="messageInput" placeholder="Say anything..." aria-required="true" />
+    <input type="submit" value="Send" aria-label="Send message" />
+  </form>
+  <div class="quick-buttons" role="group" aria-label="Quick actions">
+    <button class="quick-button" onclick="sendQuick('Tell me a joke')">🃏 Joke</button>
+    <button class="quick-button" onclick="sendQuick('Flip a coin')">🪙 Coin</button>
+    <button class="quick-button" onclick="sendQuick('Roll a dice')">🎲 Dice</button>
+    <button class="quick-button" onclick="sendQuick('Help')">❓ Help</button>
+  </div>
+</div>
+
+<script type="module">
+  import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.5.1';
+
+  const chatarea = document.getElementById("chatArea");
+  const chatform = document.getElementById("chatForm");
+  const messageinput = document.getElementById("messageInput");
+
+  let generator = null;
+
+  async function loadModel() {
+    appendMessage("Bot", "⏳ Loading AI brain... one sec...");
+    generator = await pipeline('text-generation', 'Xenova/gpt2');
+    appendMessage("Bot", "✅ I'm ready! What do you want to chat about?");
+  }
+
+  function appendMessage(sender, text) {
+    const msgDiv = document.createElement("div");
+    msgDiv.className = "message " + (sender === "You" ? "user" : "bot");
+    msgDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
+    chatarea.appendChild(msgDiv);
+    chatarea.scrollTop = chatarea.scrollHeight;
+  }
+
+  async function botReply(userInput) {
+    if (!generator) {
+      appendMessage("Bot", "⚠️ Still loading my brain... please wait.");
+      return;
+    }
+
+    const output = await generator(userInput, {
+      max_new_tokens: 60,
+      temperature: 0.8,
+      top_k: 50,
+      top_p: 0.95,
+    });
+
+    const reply = output[0].generated_text.replace(userInput, '').trim();
+    appendMessage("Bot", reply || "Hmm, I'm not sure what to say!");
+  }
+
+  chatform.addEventListener("submit", e => {
+    e.preventDefault();
+    const userText = messageinput.value.trim();
+    if (!userText) return;
+    appendMessage("You", userText);
+    messageinput.value = "";
+    botReply(userText);
+  });
+
+  window.onload = () => {
+    loadModel();
+  };
+</script>
+
+<script>
+const chatArea = document.getElementById("chatArea");
+const chatForm = document.getElementById("chatForm");
+const messageInput = document.getElementById("messageInput");
+
+let userName = localStorage.getItem("chat_user_name") || null;
+
+// Utility: append message nicely
+function appendMessage(sender, text) {
+  const msgDiv = document.createElement("div");
+  msgDiv.className = "message " + (sender === "You" ? "user" : "bot");
+  msgDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
+  chatArea.appendChild(msgDiv);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+// Detect mood (simple)
+function detectMood(input) {
+  const text = input.toLowerCase();
+  if (/sad|depressed|lonely|down|bad|unhappy/.test(text)) return "sad";
+  if (/happy|great|awesome|fantastic|joy|amazing|good/.test(text)) return "happy";
+  if (/angry|mad|frustrated|annoyed|furious/.test(text)) return "angry";
+  if (/confused|lost|dunno|unsure|unclear/.test(text)) return "confused";
+  return "neutral";
+}
+
+// Evaluate math expressions safely
+function evaluateMath(expression) {
+  try {
+    expression = expression.replace(/[xX]/g, "*").replace(/\^/g, "**");
+    if (!/^[0-9+\-*/().\s^]+$/.test(expression)) return null;
+    let result = Function(`"use strict";return (${expression})`)();
+    return isFinite(result) ? result : null;
+  } catch {
+    return null;
+  }
+}
+
+// Give a talkative, layered response
+function talkativeResponse(baseText, mood, userInput) {
+  const intros = [
+    "You know,",
+    "Honestly,",
+    "By the way,",
+    "Just saying,",
+    "Oh! Also,"
+  ];
+
+  const moods = {
+    happy: [
+      "It's awesome to see you in such a great mood!",
+      "You seem super positive today, which is contagious!",
+      "I love that energy. Care to share what's making you smile?"
+    ],
+    sad: [
+      "I'm really sorry you're feeling down. Remember, talking helps!",
+      "It's okay to have rough days, but I'm here to cheer you up.",
+      "If you want, I can tell a joke or just listen. Your choice!"
+    ],
+    angry: [
+      "Sounds like something’s bugging you. Want to vent or distract yourself?",
+      "I totally get how frustrating things can be. I'm here to help lighten the mood!",
+      "How about a funny story? Laughter sometimes helps with anger."
+    ],
+    confused: [
+      "Confusion is just a step toward clarity. Want me to help unravel things?",
+      "I’m happy to break it down or explain anything you're unsure about.",
+      "Sometimes a little chat clears the fog—what’s got you puzzled?"
+    ],
+    neutral: [
+      "So, what else is on your mind? I’m all ears!",
+      "I’m here to chat about anything, big or small. Your call!",
+      "Feel free to ask me anything, or just share how you’re feeling."
+    ]
+  };
+
+  // Pick a random intro and mood response
+  const intro = intros[Math.floor(Math.random() * intros.length)];
+  const moodReplies = moods[mood] || moods.neutral;
+  const moodReply = moodReplies[Math.floor(Math.random() * moodReplies.length)];
+
+  // Add curiosity or follow-up questions
+  let followUp = "";
+  if (/joke/i.test(userInput)) {
+    followUp = "Want to hear a funny one? I have plenty!";
+  } else if (/math|calculate|solve|what is/i.test(userInput)) {
+    followUp = "Got any other tricky questions? I love puzzles!";
+  } else if (/coin/i.test(userInput)) {
+    followUp = "Need me to flip again, or maybe roll some dice?";
+  } else if (/dice|roll/i.test(userInput)) {
+    followUp = "Feeling lucky today? I hope so!";
+  } else if (/help|what can you do/i.test(userInput)) {
+    followUp = "I can chat, tell jokes, solve math, flip coins, roll dice, and more. Just say the word!";
+  } else {
+    followUp = "Tell me more about that — I’m genuinely curious!";
+  }
+
+  return `${baseText} ${intro} ${moodReply} ${followUp}`;
+}
+
+// Small talk responses for common phrases
+function smallTalk(input) {
+  const text = input.toLowerCase();
+
+  if (text.includes("how are you")) {
+    const replies = [
+      "I'm feeling fantastic, thanks! How about you? What's been the highlight of your day so far?",
+      "Doing great here! You know, I was just thinking about how lucky I am to chat with you.",
+      "I'm all charged up and ready to chat! What’s something fun or interesting you've done recently?"
+    ];
+    return replies[Math.floor(Math.random() * replies.length)];
+  }
+
+  if (text.includes("what can you do") || text.includes("help")) {
+    return "Oh, tons of things! From telling jokes and rolling dice, to solving math problems and chatting about your day. What would you like to try first?";
+  }
+
+  if (text.includes("thank")) {
+    return "You're very welcome! Honestly, I love helping out. Anything else I can do for you?";
+  }
+
+  if (text.includes("bye") || text.includes("see you")) {
+    return "Catch you later! Don’t be a stranger — I’ll be right here when you want to chat again.";
+  }
+
+  if (text.includes("joke")) {
+    const jokes = [
+      "Why don't scientists trust atoms? Because they make up everything! 😂 Want another?",
+      "I told my computer I needed a break, and now it won’t stop sending me Kit-Kats. Classic, right?",
+      "Why did the scarecrow win an award? Because he was outstanding in his field! Ha!"
+    ];
+    return jokes[Math.floor(Math.random() * jokes.length)];
+  }
+
+  if (text.includes("flip a coin")) {
+    return "Flipping the coin... 🪙 It’s " + (Math.random() < 0.5 ? "Heads!" : "Tails!") + ". Want me to do it again?";
+  }
+
+  if (text.includes("roll a dice") || text.includes("roll a die")) {
+    return "Rolling... 🎲 You got a " + (Math.floor(Math.random() * 6) + 1) + "! Feeling lucky?";
+  }
+
+  if (text.includes("fact")) {
+    const facts = [
+      "Did you know octopuses have three hearts? Wild, huh?",
+      "Bananas are berries, but strawberries aren’t. Nature’s little mysteries!",
+      "Honey never spoils. Archaeologists found edible honey in ancient tombs. Sweet!"
+    ];
+    return facts[Math.floor(Math.random() * facts.length)] + " What do you think about that?";
+  }
+
+  if (text.includes("your name")) {
+    return "I go by Super Talkative AI, but you can call me Chatty! What's your name?";
+  }
+
+  if (text.includes("my name is")) {
+    const name = input.split("my name is")[1].trim().split(" ")[0];
+    userName = name.charAt(0).toUpperCase() + name.slice(1);
+    localStorage.setItem("chat_user_name", userName);
+    return `Nice to officially meet you, ${userName}! I feel like we’re going to be great friends. What should I know about you?`;
+  }
+
+  if (text.includes("what's my name") || text.includes("what is my name")) {
+    return userName ? `You’re ${userName}, my awesome friend! Remember, names have power — and yours sounds great!` : "I don’t know your name yet! Tell me by saying 'My name is ...'. I’d love to remember it!";
+  }
+
+  if (text.includes("date")) {
+    return `Today is ${new Date().toLocaleDateString()}. Perfect day for chatting, right? What’s on your agenda?`;
+  }
+
+  if (text.includes("time")) {
+    return `It’s currently ${new Date().toLocaleTimeString()}. Time flies when we’re having fun! Got any plans?`;
+  }
+
+  return null;
+}
+// New function to handle predefined question patterns and answers
+function handleCategoryQuestions(input) {
+  const text = input.toLowerCase().trim();
+
+  // General Knowledge
+  if (/what(?:'|’)?s the capital of ([a-z\s]+)/i.test(text)) {
+    const country = text.match(/what(?:'|’)?s the capital of ([a-z\s]+)/i)[1].trim();
+    // Expanded capitals dictionary
+    const capitals = {
+      japan: "Tokyo",
+      france: "Paris",
+      germany: "Berlin",
+      canada: "Ottawa",
+      brazil: "Brasília",
+      india: "New Delhi",
+      china: "Beijing",
+      russia: "Moscow",
+      australia: "Canberra",
+      egypt: "Cairo",
+      united_states: "Washington, D.C.",
+      united_kingdom: "London",
+      italy: "Rome",
+      spain: "Madrid",
+      mexico: "Mexico City",
+      south_africa: "Pretoria",
+      argentina: "Buenos Aires",
+      indonesia: "Jakarta",
+      turkey: "Ankara",
+      saudi_arabia: "Riyadh",
+      south_korea: "Seoul",
+      netherlands: "Amsterdam",
+      sweden: "Stockholm",
+      norway: "Oslo",
+      thailand: "Bangkok",
+      poland: "Warsaw",
+      greece: "Athens",
+      portugal: "Lisbon",
+      ireland: "Dublin",
+      belgium: "Brussels",
+      vietnam: "Hanoi",
+      malaysia: "Kuala Lumpur",
+      philippines: "Manila",
+      new_zealand: "Wellington",
+      colombia: "Bogotá",
+      chile: "Santiago",
+      nigeria: "Abuja",
+      kenya: "Nairobi",
+      pakistan: "Islamabad",
+      bangladesh: "Dhaka",
+    };
+
+    const capital = capitals[country.toLowerCase()];
+    if (capital) {
+      return `The capital of ${country.charAt(0).toUpperCase() + country.slice(1)} is ${capital}.`;
+    } else {
+      return `I’m not sure about the capital of ${country}, but I can find out if you want!`;
+    }
+  }
+
+  if (/who invented the telephone/i.test(text)) {
+    return "Alexander Graham Bell is credited with inventing the telephone in 1876.";
+  }
+
+  if (/how does photosynthesis work/i.test(text)) {
+    return "Photosynthesis is the process by which plants use sunlight, carbon dioxide, and water to produce oxygen and glucose, which serve as energy for the plant.";
+  }
+
+  if (/what(?:'|’)?s the tallest mountain in the world/i.test(text)) {
+    return "Mount Everest is the tallest mountain in the world, standing at 8,848 meters (29,029 feet).";
+  }
+
+  if (/when did world war ii end/i.test(text)) {
+    return "World War II ended in 1945.";
+  }
+
+  // Technology Help
+  if (/how do i reset my password on ([a-z]+)/i.test(text)) {
+    const platform = text.match(/how do i reset my password on ([a-z]+)/i)[1];
+    return `To reset your password on ${platform.charAt(0).toUpperCase() + platform.slice(1)}, usually you need to go to the login page, click 'Forgot Password', and follow the instructions sent to your email. Need help with a specific platform?`;
+  }
+
+  if (/what(?:'|’)?s the best app for ([a-z\s]+)/i.test(text)) {
+    const task = text.match(/what(?:'|’)?s the best app for ([a-z\s]+)/i)[1];
+    return `For ${task.trim()}, some popular apps are Todoist, Evernote, and Microsoft To Do. It depends on what features you want!`;
+  }
+
+  if (/how do i fix my phone if it(?:'|’)?s frozen/i.test(text)) {
+    return "Try holding the power button to force restart your phone. If that doesn’t work, removing the battery (if possible) or letting the battery drain might help.";
+  }
+
+  if (/how do i clear my browser cache/i.test(text)) {
+    return "To clear your browser cache, go to your browser settings, find 'Privacy' or 'History', then choose 'Clear browsing data' and select 'Cached images and files'.";
+  }
+
+  if (/what(?:'|’)?s the difference between ram and storage/i.test(text)) {
+    return "RAM is your computer's short-term memory, used for active tasks, while storage (like SSD or HDD) is for long-term data keeping.";
+  }
+
+  // Personal Advice
+  if (/how can i stay motivated/i.test(text)) {
+    return "Staying motivated can be easier if you set small goals, reward yourself for progress, and remind yourself why your goal matters!";
+  }
+
+  if (/tips for better sleep/i.test(text)) {
+    return "Try to keep a consistent bedtime, avoid screens before sleeping, and create a relaxing environment to improve your sleep quality.";
+  }
+
+  if (/how do i deal with stress/i.test(text)) {
+    return "Deep breathing, exercise, talking with friends, and taking breaks can help you manage stress effectively.";
+  }
+
+  if (/how can i improve my communication skills/i.test(text)) {
+    return "Practice active listening, be clear and concise, and try to understand others’ perspectives.";
+  }
+
+  if (/what(?:'|’)?s a good morning routine/i.test(text)) {
+    return "A good morning routine might include hydration, stretching, a healthy breakfast, and a quick review of your goals for the day.";
+  }
+
+  // Entertainment
+  if (/what movies are good right now/i.test(text)) {
+    return "Some popular movies right now include 'Dune', 'No Time to Die', and 'The Batman'. Want recommendations for a specific genre?";
+  }
+
+  if (/can you recommend a book/i.test(text)) {
+    return "I’d recommend 'The Alchemist' by Paulo Coelho. It’s inspiring and thought-provoking!";
+  }
+
+  if (/tell me a joke/i.test(text)) {
+    return "Why did the math book look sad? Because it had too many problems! 😂";
+  }
+
+  if (/what are popular tv shows this year/i.test(text)) {
+    return "'Stranger Things', 'The Witcher', and 'Succession' are some of the popular TV shows this year.";
+  }
+
+  if (/who won the oscars last year/i.test(text)) {
+    return "At the last Oscars, 'Nomadland' won Best Picture. Quite a film!";
+  }
+
+  // Math & Science Help
+  if (/can you solve this math problem for me/i.test(text)) {
+    return "Sure! Please type the math problem you'd like me to solve.";
+  }
+
+  if (/what(?:'|’)?s the formula for calculating area/i.test(text)) {
+    return "The formula depends on the shape, for example, the area of a rectangle is width × height.";
+  }
+
+  if (/explain einstein(?:'|’)?s theory of relativity/i.test(text)) {
+    return "Einstein’s theory of relativity explains how space and time are linked for objects moving at a consistent speed in a straight line.";
+  }
+
+  if (/what(?:'|’)?s the chemical formula for water/i.test(text)) {
+    return "The chemical formula for water is H₂O, made of two hydrogen atoms and one oxygen atom.";
+  }
+
+  if (/how does gravity work/i.test(text)) {
+    return "Gravity is a force that attracts two bodies toward each other. The bigger the mass, the stronger the pull.";
+  }
+
+  // Language & Writing
+  if (/can you help me write an email/i.test(text)) {
+    return "Absolutely! Tell me what the email is about and who it's for, and I can help draft it.";
+  }
+
+  if (/what(?:'|’)?s the meaning of ([a-z]+)/i.test(text)) {
+    const word = text.match(/what(?:'|’)?s the meaning of ([a-z]+)/i)[1];
+    return `The meaning of '${word}' is... (you can fill this with a dictionary API or a simple explanation).`;
+  }
+
+  if (/can you translate this sentence into spanish/i.test(text)) {
+    return "Sure! Please provide the sentence you'd like translated.";
+  }
+
+  if (/how do i improve my writing skills/i.test(text)) {
+    return "Practice regularly, read a lot, and seek feedback to improve your writing.";
+  }
+
+  if (/what(?:'|’)?s a synonym for ([a-z]+)/i.test(text)) {
+    const word = text.match(/what(?:'|’)?s a synonym for ([a-z]+)/i)[1];
+    return `Some synonyms for '${word}' are... (you can integrate with a thesaurus API for better answers).`;
+  }
+
+  // Current Events
+  if (/what(?:'|’)?s happening in the news today/i.test(text)) {
+    return "I don’t have live news access yet, but you can check trusted news sites like BBC or CNN for today's headlines.";
+  }
+
+  if (/who won the latest football game/i.test(text)) {
+    return "I don’t have live sports updates yet, but I recommend checking sports news websites or apps.";
+  }
+
+  if (/what(?:'|’)?s the weather like in ([a-z\s]+)/i.test(text)) {
+    const city = text.match(/what(?:'|’)?s the weather like in ([a-z\s]+)/i)[1];
+    return `I can’t check live weather yet, but you can use weather apps or websites to see the current conditions in ${city.trim()}.`;
+  }
+
+  if (/what(?:'|’)?s the stock price of ([a-z\s]+)/i.test(text)) {
+    const company = text.match(/what(?:'|’)?s the stock price of ([a-z\s]+)/i)[1];
+    return `I don’t have real-time stock prices, but you can check financial websites like Yahoo Finance for ${company.trim()}.`;
+  }
+
+  if (/are there any major events happening this week/i.test(text)) {
+    return "I’m not connected to live event data yet, but local event sites or calendars might have what you’re looking for!";
+  }
+
+  // Creative Requests
+  if (/write me a poem about ([a-z\s]+)/i.test(text)) {
+    const topic = text.match(/write me a poem about ([a-z\s]+)/i)[1].trim();
+    return `Here’s a quick poem about ${topic}:\n\nRoses are red,\nViolets are blue,\nThis little poem’s for you,\nAbout ${topic}, too!`;
+  }
+
+  if (/help me come up with a story idea/i.test(text)) {
+    return "Sure! How about a story where a curious cat discovers a secret door to another world?";
+  }
+
+  if (/design a workout plan for beginners/i.test(text)) {
+    return "A simple workout plan: 3 days a week, with light cardio, basic strength training, and stretching.";
+  }
+
+  if (/can you create a meal plan for weight loss/i.test(text)) {
+    return "A balanced meal plan includes plenty of veggies, lean proteins, whole grains, and controlled portions.";
+  }
+
+  if (/write a motivational quote/i.test(text)) {
+    return "“The only limit to our realization of tomorrow is our doubts of today.” — Franklin D. Roosevelt";
+  }
+
+  return null; // no match
+}
+
+
+
+// Main bot reply function
+function botReply(input) {
+  const mood = detectMood(input);
+  const smallTalkReply = smallTalk(input.toLowerCase());
+
+  // Check for category questions first
+  const categoryAnswer = handleCategoryQuestions(input);
+  if (categoryAnswer) {
+    return talkativeResponse(categoryAnswer, mood, input);
+  }
+
+  if (smallTalkReply) {
+    return talkativeResponse(smallTalkReply, mood, input);
+  }
+
+  const mathResult = evaluateMath(input);
+  if (mathResult !== null) {
+    return talkativeResponse(
+      `I just calculated that for you: ${input} equals ${mathResult}. Math can be fun, right?`,
+      mood,
+      input
+    );
+  }
+
+  // Basic greetings
+  if (["hi", "hello", "hey", "hiya", "yo", "sup"].includes(input.toLowerCase())) {
+    return talkativeResponse(
+      `Hey there${userName ? ", " + userName : ""}! It’s so nice to hear from you. What’s something interesting you want to chat about today?`,
+      mood,
+      input
+    );
+  }
+
+  // Catch all fallback for talkativeness
+  return talkativeResponse(
+    `That's a really interesting thought! You know, I'm always excited to hear more about what you think or feel. So, spill the beans!`,
+    mood,
+    input
+  );
+}
+
+// Send quick message from buttons
+function sendQuick(text) {
+  messageInput.value = text;
+  chatForm.dispatchEvent(new Event("submit"));
+}
+
+// Event listener for form submit
+chatForm.addEventListener("submit", e => {
+  e.preventDefault();
+  const userText = messageInput.value.trim();
+  if (!userText) return;
+  appendMessage("You", userText);
+  messageInput.value = "";
+
+  setTimeout(() => {
+    const reply = botReply(userText);
+    appendMessage("Bot", reply);
+  }, 800 + Math.random() * 1200);
+});
+
+// On load welcome message
+window.onload = () => {
+  appendMessage("Bot", "Hey there! I'm your Super Talkative AI Buddy — always here for a chat, a joke, or to help out. What’s something fun you want to talk about today?");
+  if (userName) {
+    appendMessage("Bot", `Welcome back, ${userName}! It’s great to see you again. How have you been?`);
+  }
+};
+</script>
+
+</body>
+</html>
