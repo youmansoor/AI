@@ -381,7 +381,7 @@
     }
 
     // Respond to “what day is it”
-    if (userInput.includes("what day")) {
+    if (userInput.includes("day")) {
       const today = new Date().getDay(); // 0 = Sunday, 6 = Saturday
       return respondWithMood(`Today is ${daysOfWeek[today]}`, mood);
     }
